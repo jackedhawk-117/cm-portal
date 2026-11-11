@@ -13,6 +13,8 @@ const { apiNotFound, notFound, errorHandler } = require('./middleware/errorHandl
 const authRoutes = require('./routes/auth.routes');
 const publicRoutes = require('./routes/public.routes');
 const statsRoutes = require('./routes/stats.routes');
+const grievanceRoutes = require('./routes/grievance.routes');
+const miscRoutes = require('./routes/misc.routes');
 
 function createApp() {
   const app = express();
@@ -90,6 +92,8 @@ function createApp() {
 
   app.use('/api/auth', authRoutes);
   app.use('/api/stats', statsRoutes);
+  app.use('/api/grievances', grievanceRoutes);
+  app.use('/api', miscRoutes);
   app.use('/api', publicRoutes);
 
   // Unknown API route → JSON 404 (registered before the SPA fallback).
