@@ -1,0 +1,44 @@
+# Render Blueprint – single web service for the API and the built React SPA.
+# The database is Neon (external); set DATABASE_URL in the Render dashboard.
+services:
+  - type: web
+    name: cm-kerala-grievance-portal
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start:prod -w server
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Required – paste the Neon pooled connection string
+      # (postgresql://USER:PASSWORD@ep-xxxx.region.aws.neon.tech/neondb?sslmode=require)
+      - key: DATABASE_URL
+        sync: false
+      # Generated once by Render and kept secret.
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      # Optional: leave empty to demonstrate the labelled keyword fallback.
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: GEMINI_TIMEOUT_MS
+        value: 20000
+      # Same-origin deployment, so this is only needed for a custom client origin.
+      - key: CLIENT_ORIGIN
+        sync: false
+      # SLA thresholds (days) used for the overdue calculation.
+      - key: SLA_HIGH_DAYS
+        value: 3
+      - key: SLA_MEDIUM_DAYS
+        value: 7
+      - key: SLA_LOW_DAYS
+        value: 15
+      # Password used only when the first boot seeds the fictional demo data.
+      - key: DEMO_PASSWORD
+        value: Demo@12345
