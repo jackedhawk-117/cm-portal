@@ -1,0 +1,24 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#ecfdf5", "primaryBorderColor": "#047857", "primaryTextColor": "#0f172a", "lineColor": "#475569"}, "flowchart": {"htmlLabels": false, "curve": "basis"}}}%%
+flowchart TD
+  A["Citizen description<br/>or Analyse with AI"] --> B["POST /api/ai/analyze<br/>citizen session + rate limit"]
+  B --> C["Load fixed categories<br/>and departments from DB"]
+  C --> D{"GEMINI_API_KEY<br/>configured?"}
+  D -- yes --> E["Gemini generateContent<br/>system prompt + JSON schema"]
+  D -- no --> K["Keyword fallback<br/>source = fallback-keyword"]
+  E --> F{"Valid JSON matching<br/>Zod + catalogue?"}
+  F -- yes --> I["Normalise category/department"]
+  F -- no --> G["Retry once"]
+  G --> H{"Valid on retry?"}
+  H -- yes --> I
+  H -- no --> K
+  I --> J["Duplicate lookup<br/>same district + category"]
+  K --> J
+  J --> L["Audit log + response"]
+  L --> M["Citizen sees category, department, priority,<br/>summary, confidence, duplicate flags"]
+  M --> N{"Accept, edit or ignore"}
+  N -- accept --> O["Final fields = AI advice<br/>ai_accepted = true"]
+  N -- edit --> P["Final fields = citizen edits<br/>AI advice stored in advisory columns"]
+  N -- ignore --> Q["Final fields = manual<br/>ai_accepted = false"]
+  O --> R["POST /api/grievances"]
+  P --> R
+  Q --> R

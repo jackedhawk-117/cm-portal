@@ -1,0 +1,111 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#ecfdf5", "primaryBorderColor": "#047857", "primaryTextColor": "#0f172a", "lineColor": "#475569"}, "er": {"layoutDirection": "TB"}}}%%
+erDiagram
+  DEPARTMENTS ||--o{ USERS : "employs officers"
+  DEPARTMENTS ||--o{ CATEGORIES : "default owner"
+  DEPARTMENTS ||--o{ GRIEVANCES : "current assignment"
+  CATEGORIES ||--o{ GRIEVANCES : "classifies"
+  USERS ||--o{ GRIEVANCES : "citizen submits"
+  GRIEVANCES ||--o{ GRIEVANCE_HISTORY : "audit trail"
+  GRIEVANCES ||--o{ DEPARTMENT_ASSIGNMENTS : "forwarded via"
+  DEPARTMENTS ||--o{ DEPARTMENT_ASSIGNMENTS : "receives"
+  USERS ||--o{ DEPARTMENT_ASSIGNMENTS : "officer handles"
+  GRIEVANCES ||--o{ ATTACHMENTS : "evidence"
+  USERS ||--o{ ATTACHMENTS : "uploads"
+  GRIEVANCES ||--o| CITIZEN_FEEDBACK : "receives"
+  GRIEVANCES ||--o{ GRIEVANCE_DUPLICATES : "flagged"
+  GRIEVANCES ||--o{ GRIEVANCE_DUPLICATES : "duplicate of"
+  USERS ||--o{ AI_AUDIT_LOGS : "requests"
+
+  DEPARTMENTS {
+    int id PK
+    text code UK
+    text name
+    text short_description
+    text contact_email
+    bool is_active
+  }
+  USERS {
+    int id PK
+    text name
+    text email UK
+    text mobile
+    text password_hash
+    text role
+    int department_id FK
+    bool is_active
+  }
+  CATEGORIES {
+    int id PK
+    text slug UK
+    text name
+    int default_department_id FK
+    bool is_active
+  }
+  GRIEVANCES {
+    int id PK
+    text ref_no UK
+    int citizen_id FK
+    text district
+    int category_id FK
+    int department_id FK
+    text subject
+    text description
+    text priority
+    text status
+    numeric ai_confidence
+    bool ai_accepted
+    timestamptz created_at
+    timestamptz resolved_at
+  }
+  GRIEVANCE_HISTORY {
+    bigint id PK
+    int grievance_id FK
+    text from_status
+    text to_status
+    int changed_by FK
+    text changed_by_role
+    text remark
+    bool is_internal
+  }
+  DEPARTMENT_ASSIGNMENTS {
+    int id PK
+    int grievance_id FK
+    int department_id FK
+    int officer_id FK
+    int assigned_by FK
+    text action_taken_report
+    text report_status
+    bool is_active
+  }
+  ATTACHMENTS {
+    int id PK
+    int grievance_id FK
+    int uploaded_by FK
+    text filename
+    text mime
+    int size
+    bytea data
+    text kind
+  }
+  CITIZEN_FEEDBACK {
+    int id PK
+    int grievance_id FK
+    int citizen_id FK
+    int rating
+    text comment
+  }
+  GRIEVANCE_DUPLICATES {
+    int id PK
+    int grievance_id FK
+    int duplicate_of_id FK
+    numeric similarity
+  }
+  AI_AUDIT_LOGS {
+    bigint id PK
+    int user_id FK
+    text endpoint
+    text source
+    bool success
+    int latency_ms
+    text error_code
+  }

@@ -1,0 +1,38 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#ecfdf5", "primaryBorderColor": "#047857", "primaryTextColor": "#0f172a", "lineColor": "#475569", "secondaryColor": "#f8fafc"}, "flowchart": {"htmlLabels": false, "curve": "basis"}}}%%
+flowchart LR
+  subgraph Browser["Citizen / CMO / Officer browser"]
+    Public["Public website"]
+    Portal["Role dashboards"]
+    SPA["React 19 + Vite SPA<br/>React Router · Tailwind · Recharts"]
+    Public --> SPA
+    Portal --> SPA
+  end
+
+  subgraph Render["Single Render web service (Node.js)"]
+    Express["Express 4 application"]
+    Static["Static SPA hosting<br/>client/dist"]
+    API["REST API /api"]
+    Auth["JWT httpOnly cookie<br/>bcrypt · RBAC"]
+    Workflow["Workflow engine<br/>transition table"]
+    Uploads["Multer memory upload<br/>5 MB · magic bytes"]
+    AIRoute["POST /api/ai/analyze<br/>rate limited"]
+    SPA --> Static
+    Express --> Static
+    Express --> API
+    API --> Auth
+    API --> Workflow
+    API --> Uploads
+    API --> AIRoute
+  end
+
+  subgraph Data["Data and external services"]
+    PG[("PostgreSQL / Neon<br/>grievances · history · users<br/>attachments bytea · pg_trgm")]
+    Gemini["Google Gemini API<br/>structured JSON output"]
+    Audit[("ai_audit_logs<br/>no complaint text")]
+  end
+
+  SPA -- "HTTPS JSON / multipart" --> API
+  API --> PG
+  AIRoute -- "server-side key" --> Gemini
+  AIRoute --> PG
+  AIRoute --> Audit

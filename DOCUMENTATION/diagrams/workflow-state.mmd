@@ -1,0 +1,19 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#ecfdf5", "primaryBorderColor": "#047857", "primaryTextColor": "#0f172a", "lineColor": "#475569", "tertiaryColor": "#f8fafc"}, "flowchart": {"htmlLabels": false, "curve": "basis"}}}%%
+stateDiagram-v2
+  [*] --> Submitted : Citizen submits (ref ID generated)
+  Submitted --> UnderReview : CMO takes up for review
+  UnderReview --> InProgress : CMO assigns department + officer
+  InProgress --> InProgress : Officer investigation remark
+  InProgress --> InProgress : Officer submits report
+  InProgress --> Resolved : CMO accepts report
+  InProgress --> InProgress : CMO sends report back
+  Resolved --> Reopened : Citizen reopens with reason
+  Resolved --> Resolved : Citizen feedback (status unchanged)
+  Reopened --> UnderReview : CMO re-reviews
+  Reopened --> InProgress : CMO reassigns directly
+
+  state "Submitted" as Submitted
+  state "Under Review" as UnderReview
+  state "In Progress" as InProgress
+  state "Resolved" as Resolved
+  state "Reopened" as Reopened
