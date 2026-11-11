@@ -15,6 +15,7 @@ const publicRoutes = require('./routes/public.routes');
 const statsRoutes = require('./routes/stats.routes');
 const grievanceRoutes = require('./routes/grievance.routes');
 const miscRoutes = require('./routes/misc.routes');
+const aiRoutes = require('./routes/ai.routes');
 
 function createApp() {
   const app = express();
@@ -93,6 +94,7 @@ function createApp() {
   app.use('/api/auth', authRoutes);
   app.use('/api/stats', statsRoutes);
   app.use('/api/grievances', grievanceRoutes);
+  app.use('/api/ai', aiRoutes);
   app.use('/api', miscRoutes);
   app.use('/api', publicRoutes);
 
