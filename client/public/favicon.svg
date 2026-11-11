@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Grievance portal mark">
+  <rect width="64" height="64" rx="14" fill="#065f46"/>
+  <path d="M18 20h28a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4H32l-9 7v-7h-5a4 4 0 0 1-4-4V24a4 4 0 0 1 4-4z" fill="#ecfdf5"/>
+  <path d="M24 30h16M24 37h10" stroke="#065f46" stroke-width="3.2" stroke-linecap="round"/>
+</svg>
