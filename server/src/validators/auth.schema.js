@@ -11,14 +11,14 @@ const passwordSchema = z
   .regex(/[0-9]/, PASSWORD_MESSAGE);
 
 const emailSchema = z
-  .string({ required_error: 'Email is required' })
+  .string({ error: 'Email is required' })
   .trim()
   .toLowerCase()
   .email('Enter a valid email address')
   .max(255);
 
 const mobileSchema = z
-  .string({ required_error: 'Mobile number is required' })
+  .string({ error: 'Mobile number is required' })
   .trim()
   .transform((v) => v.replace(/[\s-]/g, ''))
   .refine((v) => /^(\+91)?[6-9]\d{9}$/.test(v), 'Enter a valid 10-digit Indian mobile number');

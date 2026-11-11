@@ -3,7 +3,7 @@ const { KERALA_DISTRICTS, STATUSES, PRIORITIES } = require('../constants');
 const { emailSchema } = require('./auth.schema');
 
 const districtSchema = z.enum(KERALA_DISTRICTS, {
-  errorMap: () => ({ message: 'Select one of the 14 Kerala districts' }),
+  error: 'Select one of the 14 Kerala districts',
 });
 
 const statusSchema = z.enum(STATUSES);

@@ -258,7 +258,8 @@ Result on the current build: **3 suites, 41 tests, all passing.**
 3. In Render, create a **Blueprint** from `render.yaml` (or a Web Service manually).
 4. Set `DATABASE_URL` to the Neon string, `GEMINI_API_KEY` to a Google AI Studio key, and let
    Render generate `JWT_SECRET`. Optionally set `CLIENT_ORIGIN` to the Render URL/custom domain.
-5. Deploy. Build: `npm ci && npm run build`. Start: `npm run start:prod -w server`.
+5. Deploy. Build: `npm ci --include=dev && npm run build` (Vite is a dev dependency).
+   Start: `npm run start:prod -w server`.
 6. The first boot migrates and seeds an empty database. Later boots skip seeding.
 7. Open `/api/health`, then the hosted URL and sign in with a demo account.
 

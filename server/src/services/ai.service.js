@@ -71,7 +71,7 @@ function buildOutputSchema(categories, departments) {
       .trim()
       .refine((value) => departmentCodes.some((c) => c.toUpperCase() === value.toUpperCase()), 'Unknown department'),
     priority: z.enum(['Low', 'Medium', 'High'], {
-      errorMap: () => ({ message: 'priority must be Low, Medium or High' }),
+      error: 'priority must be Low, Medium or High',
     }),
     priority_reason: z.string().trim().min(3).max(500),
     summary: z
