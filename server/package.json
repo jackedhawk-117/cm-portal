@@ -1,0 +1,46 @@
+{
+  "name": "@cmk/server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Express API for CM Kerala grievance portal",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "start:prod": "node src/db/migrate.js && node src/server.js",
+    "db:migrate": "node src/db/migrate.js",
+    "db:seed": "node src/db/seed.js",
+    "db:reset": "node src/db/migrate.js && node src/db/seed.js",
+    "test": "jest --runInBand --forceExit",
+    "lint": "node --check src/server.js && node --check src/app.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.1",
+    "pg": "^8.16.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.1.1"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 30000,
+    "setupFiles": [
+      "<rootDir>/tests/setupEnv.js"
+    ],
+    "globalSetup": "<rootDir>/tests/globalSetup.js",
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/db/seed.js"
+    ]
+  }
+}

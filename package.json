@@ -1,0 +1,26 @@
+{
+  "name": "cm-kerala-grievance-portal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CM Kerala – Public Grievance Redressal Portal (recruitment prototype)",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c green,cyan \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w client",
+    "start": "npm run start:prod -w server",
+    "test": "npm test -w server",
+    "db:migrate": "npm run db:migrate -w server",
+    "db:seed": "npm run db:seed -w server",
+    "db:reset": "npm run db:reset -w server",
+    "lint": "npm run lint -w server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
