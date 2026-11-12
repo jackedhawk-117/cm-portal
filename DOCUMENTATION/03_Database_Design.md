@@ -161,16 +161,16 @@ Mermaid source: [`diagrams/database-er.mmd`](./diagrams/database-er.mmd). Export
 | --- | --- | --- |
 | `id` | `SERIAL PK` | |
 | `name` | `TEXT NOT NULL` | |
-| `email` | `TEXT NOT NULL` | Case-insensitive unique index on `lower(email)` |
-| `mobile` | `TEXT` | Indian mobile format enforced by Zod |
+| `email` | `TEXT` | Optional for citizens (migration `002_optional_email.sql`); case-insensitive unique index |
+| `mobile` | `TEXT` | Indian mobile format; unique index on cleaned digits; required for registration |
 | `password_hash` | `TEXT NOT NULL` | bcrypt cost 10; never returned by the API |
 | `role` | `TEXT` | `CITIZEN`, `CMO_ADMIN`, `DEPT_OFFICER` |
 | `department_id` | `INTEGER FK → departments` | Required for officers, null for citizens/CMO |
 | `is_active` | `BOOLEAN` | Deactivated accounts cannot sign in |
 | `created_at`, `updated_at` | `TIMESTAMPTZ` | `updated_at` trigger |
 
-Constraint: `users_role_department_check` enforces `DEPT_OFFICER` has a department and
-`CITIZEN`/`CMO_ADMIN` do not.
+Constraints: `users_role_department_check` enforces `DEPT_OFFICER` has a department and
+`CITIZEN`/`CMO_ADMIN` do not; `users_contact_identifier_check` guarantees either `email` or `mobile` is provided.
 
 ### 2.4 `grievances`
 

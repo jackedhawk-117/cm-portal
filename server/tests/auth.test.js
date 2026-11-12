@@ -33,6 +33,39 @@ describe('Auth API', () => {
     expect(me.body.data.password_hash).toBeUndefined();
   });
 
+  test('registers a citizen with mobile only (no email) and signs in with mobile', async () => {
+    const mobileNo = `98765${Math.floor(10000 + Math.random() * 90000)}`;
+    const agent = request.agent(app);
+    const res = await agent.post('/api/auth/register').send({
+      name: 'Mobile Citizen',
+      mobile: mobileNo,
+      password: 'TestPass123',
+    });
+
+    expect(res.status).toBe(201);
+    expect(res.body.data.email).toBeNull();
+    expect(res.body.data.role).toBe('CITIZEN');
+
+    // Sign in using mobile number as the identifier
+    const loginRes = await agent.post('/api/auth/login').send({
+      identifier: mobileNo,
+      password: 'TestPass123',
+    });
+    expect(loginRes.status).toBe(200);
+    expect(loginRes.body.data.name).toBe('Mobile Citizen');
+  });
+
+  test('rejects a duplicate mobile number with 409', async () => {
+    const res = await request(app).post('/api/auth/register').send({
+      name: 'Duplicate Mobile',
+      email: `diff.${Date.now()}@example.test`,
+      mobile: '9876512345',
+      password: 'TestPass123',
+    });
+    expect(res.status).toBe(409);
+    expect(res.body.error.code).toBe('CONFLICT');
+  });
+
   test('ignores a role supplied during registration (privilege escalation)', async () => {
     const res = await request(app).post('/api/auth/register').send({
       name: 'Sneaky User',

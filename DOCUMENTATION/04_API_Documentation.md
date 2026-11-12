@@ -67,7 +67,7 @@ Request:
 }
 ```
 
-- Name 2–80 chars; valid email; Indian mobile (`[6-9]` + 9 digits, optional `+91`); password
+- Name 2–80 chars; Indian mobile (`[6-9]` + 9 digits, optional `+91`); email is **optional** to maximize citizen accessibility; password
   8–72 chars with at least one letter and one digit.
 - Unknown fields such as `role` are stripped by Zod, so self-registration cannot create staff.
 
@@ -77,15 +77,16 @@ Response `201 Created` + `Set-Cookie: cmk_token=...; HttpOnly; SameSite=Lax; Pat
 { "data": { "id": 15, "name": "Test Citizen", "role": "CITIZEN", "email": "test.citizen@example.test", "mobile": "9876512345", "department": null } }
 ```
 
-Errors: `409 CONFLICT` (email exists), `422 VALIDATION_ERROR`.
+Errors: `409 CONFLICT` (email or mobile exists), `422 VALIDATION_ERROR`.
 
 ### `POST /api/auth/login`
 
-Public. Request:
+Public. Supports either **email OR mobile number** as the login identifier. Request:
 
 ```json
-{ "email": "citizen@demo.test", "password": "Demo@12345" }
+{ "identifier": "9876512345", "password": "Demo@12345" }
 ```
+*(Also accepts `{ "email": "citizen@demo.test", "password": "Demo@12345" }` for full backward compatibility).*
 
 Response `200 OK`: `{ "data": <user> }` and auth cookie. Wrong credentials:
 `401 INVALID_CREDENTIALS` (generic message, bcrypt comparison still runs).

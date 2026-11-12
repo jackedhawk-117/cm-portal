@@ -97,18 +97,18 @@ export default function Login() {
             </div>
           </div>
           <h2 className="mt-4 text-xl font-bold tracking-tight text-slate-900 lg:mt-0">Sign in</h2>
-          <p className="mt-1 text-sm text-slate-600">Enter your registered email and password.</p>
+          <p className="mt-1 text-sm text-slate-600">Enter your registered email or mobile number and password.</p>
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
-            <Field label="Email address" htmlFor="login-email" required>
+            <Field label="Email or Mobile number" htmlFor="login-identifier" required>
               <input
-                id="login-email"
-                type="email"
-                autoComplete="email"
+                id="login-identifier"
+                type="text"
+                autoComplete="username"
                 className="input"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="you@example.com"
+                placeholder="you@example.com or 98765 43210"
                 required
               />
             </Field>

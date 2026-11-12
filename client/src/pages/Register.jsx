@@ -30,8 +30,12 @@ export default function Register() {
   const validate = () => {
     const next = {};
     if (form.name.trim().length < 2) next.name = 'Enter your full name';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) next.email = 'Enter a valid email';
-    if (!/^(\+91)?[6-9]\d{9}$/.test(form.mobile.replace(/[\s-]/g, ''))) next.mobile = 'Enter a valid 10-digit Indian mobile number';
+    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      next.email = 'Enter a valid email address';
+    }
+    if (!/^(\+91)?[6-9]\d{9}$/.test(form.mobile.replace(/[\s-]/g, ''))) {
+      next.mobile = 'Enter a valid 10-digit Indian mobile number';
+    }
     if (form.password.length < 8 || !/[A-Za-z]/.test(form.password) || !/[0-9]/.test(form.password)) {
       next.password = 'At least 8 characters with a letter and a number';
     }
@@ -48,7 +52,7 @@ export default function Register() {
     try {
       const created = await register({
         name: form.name.trim(),
-        email: form.email.trim(),
+        email: form.email.trim() || undefined,
         mobile: form.mobile.replace(/[\s-]/g, ''),
         password: form.password,
       });
@@ -95,17 +99,17 @@ export default function Register() {
 
         <div className="card card-pad w-full">
           <h2 className="text-xl font-bold tracking-tight text-slate-900">Register</h2>
-          <p className="mt-1 text-sm text-slate-600">All fields are required.</p>
+          <p className="mt-1 text-sm text-slate-600">Mobile number is required for updates and login. Email is optional.</p>
           <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
             <Field label="Full name" htmlFor="reg-name" error={errors.name} required>
               <input id="reg-name" className={`input ${errors.name ? 'input-error' : ''}`} value={form.name} onChange={setField('name')} autoComplete="name" placeholder="Fictional full name" />
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Email address" htmlFor="reg-email" error={errors.email} required>
-                <input id="reg-email" type="email" className={`input ${errors.email ? 'input-error' : ''}`} value={form.email} onChange={setField('email')} autoComplete="email" placeholder="you@example.com" />
-              </Field>
-              <Field label="Mobile number" htmlFor="reg-mobile" error={errors.mobile} required>
+              <Field label="Mobile number (primary ID)" htmlFor="reg-mobile" error={errors.mobile} required>
                 <input id="reg-mobile" type="tel" className={`input ${errors.mobile ? 'input-error' : ''}`} value={form.mobile} onChange={setField('mobile')} autoComplete="tel" placeholder="98765 43210" />
+              </Field>
+              <Field label="Email address (optional)" htmlFor="reg-email" error={errors.email}>
+                <input id="reg-email" type="email" className={`input ${errors.email ? 'input-error' : ''}`} value={form.email} onChange={setField('email')} autoComplete="email" placeholder="Optional email" />
               </Field>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">

@@ -17,6 +17,16 @@ const emailSchema = z
   .email('Enter a valid email address')
   .max(255);
 
+const optionalEmailSchema = z
+  .union([
+    z.string().trim().toLowerCase().email('Enter a valid email address').max(255),
+    z.literal(''),
+    z.null(),
+    z.undefined(),
+  ])
+  .optional()
+  .transform((v) => (v && typeof v === 'string' && v.trim().length > 0 ? v.trim().toLowerCase() : null));
+
 const mobileSchema = z
   .string({ error: 'Mobile number is required' })
   .trim()
@@ -25,14 +35,23 @@ const mobileSchema = z
 
 const registerSchema = z.object({
   name: z.string().trim().min(2, 'Name must be at least 2 characters').max(80),
-  email: emailSchema,
+  email: optionalEmailSchema,
   mobile: mobileSchema,
   password: passwordSchema,
 });
 
-const loginSchema = z.object({
-  email: emailSchema,
-  password: z.string().min(1, 'Password is required').max(72),
-});
+const loginSchema = z
+  .object({
+    identifier: z.string().trim().optional(),
+    email: z.string().trim().optional(),
+    password: z.string().min(1, 'Password is required').max(72),
+  })
+  .refine(
+    (data) => Boolean((data.identifier && data.identifier.length > 0) || (data.email && data.email.length > 0)),
+    {
+      message: 'Email or mobile number is required',
+      path: ['email'],
+    },
+  );
 
-module.exports = { registerSchema, loginSchema, passwordSchema, emailSchema };
+module.exports = { registerSchema, loginSchema, passwordSchema, emailSchema, optionalEmailSchema, mobileSchema };
