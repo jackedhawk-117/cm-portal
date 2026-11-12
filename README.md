@@ -17,7 +17,7 @@ priority and neutral summary, flags possible duplicates, and is clearly marked a
 labelled keyword fallback keeps the form usable when Gemini is unavailable.
 
 **Live demo:** _[add your Render URL here after deployment]_<br>
-**Repository:** _[add your Git repository URL here]_
+**Repository:** https://github.com/jackedhawk-117/cm-portal
 
 ## Contents
 
