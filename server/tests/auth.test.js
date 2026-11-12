@@ -66,6 +66,44 @@ describe('Auth API', () => {
     expect(res.body.error.code).toBe('CONFLICT');
   });
 
+  test('sends OTP, returns dev_otp and verifies OTP to authenticate citizen', async () => {
+    const testMobile = `98470${Math.floor(10000 + Math.random() * 90000)}`;
+    const sendRes = await request(app).post('/api/auth/otp/send').send({ mobile: testMobile });
+    expect(sendRes.status).toBe(200);
+    expect(sendRes.body.data.dev_otp).toMatch(/^\d{6}$/);
+
+    const devOtp = sendRes.body.data.dev_otp;
+
+    // Verify OTP and auto-register new citizen
+    const agent = request.agent(app);
+    const verifyRes = await agent.post('/api/auth/otp/verify').send({
+      mobile: testMobile,
+      otp: devOtp,
+      name: 'OTP Verified Citizen',
+    });
+    expect(verifyRes.status).toBe(200);
+    expect(verifyRes.body.data.name).toBe('OTP Verified Citizen');
+    expect(verifyRes.body.data.role).toBe('CITIZEN');
+    expect(verifyRes.headers['set-cookie'].join(';')).toMatch(/HttpOnly/i);
+
+    // Verify session is active
+    const me = await agent.get('/api/auth/me');
+    expect(me.status).toBe(200);
+    expect(me.body.data.name).toBe('OTP Verified Citizen');
+  });
+
+  test('rejects invalid OTP with 401', async () => {
+    const testMobile = '9876500001';
+    await request(app).post('/api/auth/otp/send').send({ mobile: testMobile });
+
+    const badVerify = await request(app).post('/api/auth/otp/verify').send({
+      mobile: testMobile,
+      otp: '000000',
+    });
+    expect(badVerify.status).toBe(401);
+    expect(badVerify.body.error.code).toBe('INVALID_OTP');
+  });
+
   test('ignores a role supplied during registration (privilege escalation)', async () => {
     const res = await request(app).post('/api/auth/register').send({
       name: 'Sneaky User',

@@ -54,4 +54,23 @@ const loginSchema = z
     },
   );
 
-module.exports = { registerSchema, loginSchema, passwordSchema, emailSchema, optionalEmailSchema, mobileSchema };
+const sendOtpSchema = z.object({
+  mobile: mobileSchema,
+});
+
+const verifyOtpSchema = z.object({
+  mobile: mobileSchema,
+  otp: z.string().trim().regex(/^\d{6}$/, 'Enter a valid 6-digit verification code'),
+  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(80).optional(),
+});
+
+module.exports = {
+  registerSchema,
+  loginSchema,
+  passwordSchema,
+  emailSchema,
+  optionalEmailSchema,
+  mobileSchema,
+  sendOtpSchema,
+  verifyOtpSchema,
+};

@@ -133,6 +133,8 @@ export default function Register() {
           <p className="mt-5 text-center text-sm text-slate-600">
             Already registered?{' '}
             <Link to="/login" className="font-semibold text-brand-800 hover:underline">Sign in</Link>
+            {' · '}
+            <Link to="/login?tab=otp" className="font-semibold text-brand-800 hover:underline">Instant Mobile OTP</Link>
           </p>
           <p className="mt-3 rounded-lg bg-slate-50 p-2.5 text-center text-[11px] leading-relaxed text-slate-500">
             By registering you acknowledge that this is a recruitment prototype with fictional data and no

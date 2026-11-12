@@ -91,6 +91,61 @@ Public. Supports either **email OR mobile number** as the login identifier. Requ
 Response `200 OK`: `{ "data": <user> }` and auth cookie. Wrong credentials:
 `401 INVALID_CREDENTIALS` (generic message, bcrypt comparison still runs).
 
+### `POST /api/auth/otp/send`
+
+Public. Generates a 6-digit cryptographic verification code sent to the citizen's mobile number.
+Rate limit: max 3 requests per 2 minutes.
+
+Request:
+
+```json
+{ "mobile": "9876543210" }
+```
+
+Response `200 OK`:
+
+```json
+{
+  "data": {
+    "message": "Verification code generated successfully",
+    "mobile": "9876543210",
+    "expires_in_seconds": 300,
+    "dev_otp": "123456"
+  }
+}
+```
+
+### `POST /api/auth/otp/verify`
+
+Public. Verifies the 6-digit OTP, auto-creates the citizen account if not already registered, signs the user in and issues the JWT auth cookie.
+
+Request:
+
+```json
+{
+  "mobile": "9876543210",
+  "otp": "123456",
+  "name": "Suresh Kumar"
+}
+```
+
+Response `200 OK` + `Set-Cookie: cmk_token=...; HttpOnly`:
+
+```json
+{
+  "data": {
+    "id": 16,
+    "name": "Suresh Kumar",
+    "role": "CITIZEN",
+    "email": null,
+    "mobile": "9876543210",
+    "department": null
+  }
+}
+```
+
+Errors: `401 INVALID_OTP`, `429 TOO_MANY_ATTEMPTS`.
+
 ### `POST /api/auth/logout`
 
 Clears the cookie. Response `200 OK`:
