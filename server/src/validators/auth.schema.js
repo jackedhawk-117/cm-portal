@@ -64,6 +64,11 @@ const verifyOtpSchema = z.object({
   name: z.string().trim().min(2, 'Name must be at least 2 characters').max(80).optional(),
 });
 
+const completeRegistrationSchema = z.object({
+  registration_token: z.string().trim().min(1, 'Registration token is required'),
+  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(80),
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
@@ -73,4 +78,5 @@ module.exports = {
   mobileSchema,
   sendOtpSchema,
   verifyOtpSchema,
+  completeRegistrationSchema,
 };

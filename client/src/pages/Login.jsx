@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Building2, Eye, EyeOff, KeyRound, LockKeyhole, ShieldCheck, Smartphone, Users } from 'lucide-react';
+import { Building2, Eye, EyeOff, KeyRound, LockKeyhole, ShieldCheck, Smartphone, Sparkles, UserCheck, UserPlus, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useTitle } from '../hooks/useTitle';
@@ -15,7 +15,7 @@ const DEMO_ACCOUNTS = [
 
 export default function Login() {
   useTitle('Sign in');
-  const { user, login, sendOtp, verifyOtp } = useAuth();
+  const { user, login, sendOtp, verifyOtp, completeRegistration } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -32,7 +32,8 @@ export default function Login() {
   const [otpMobile, setOtpMobile] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [otpName, setOtpName] = useState('');
-  const [otpStep, setOtpStep] = useState('phone'); // 'phone' | 'verify'
+  const [otpStep, setOtpStep] = useState('phone'); // 'phone' | 'verify' | 'name'
+  const [registrationToken, setRegistrationToken] = useState(null);
   const [devOtp, setDevOtp] = useState(null);
   const [countdown, setCountdown] = useState(0);
 
@@ -102,8 +103,37 @@ export default function Login() {
     setSubmitting(true);
     try {
       const cleaned = otpMobile.replace(/[\s-]/g, '');
-      const signedIn = await verifyOtp(cleaned, otpCode.trim(), otpName.trim() || undefined);
-      toast.success(`Welcome back, ${signedIn.name.split(' ')[0]}.`);
+      const res = await verifyOtp(cleaned, otpCode.trim());
+
+      // If phone number is not yet in database, prompt for citizen's name
+      if (res.needs_name) {
+        setRegistrationToken(res.registration_token);
+        setOtpStep('name');
+        toast.info('Number verified! Please enter your name to complete your registration.');
+        return;
+      }
+
+      // Existing citizen logged in
+      toast.success(`Welcome back, ${res.name.split(' ')[0]}.`);
+      navigate(safeNext || ROLE_DASHBOARD[res.role] || '/', { replace: true });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCompleteRegistration = async (e) => {
+    e.preventDefault();
+    setError(null);
+    if (otpName.trim().length < 2) {
+      setError('Please enter your full name (at least 2 characters)');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const signedIn = await completeRegistration(registrationToken, otpName.trim());
+      toast.success(`Welcome, ${signedIn.name.split(' ')[0]}! Your account is created.`);
       navigate(safeNext || ROLE_DASHBOARD[signedIn.role] || '/', { replace: true });
     } catch (err) {
       setError(err.message);
@@ -219,7 +249,7 @@ export default function Login() {
           {/* MODE 1: Mobile OTP Login */}
           {authMode === 'otp' ? (
             <div className="mt-5">
-              {otpStep === 'phone' ? (
+              {otpStep === 'phone' && (
                 <form className="space-y-4" onSubmit={handleSendOtp} noValidate>
                   <Field label="10-digit Indian Mobile number" htmlFor="otp-mobile" required>
                     <div className="relative">
@@ -242,7 +272,9 @@ export default function Login() {
                     {submitting ? <><Spinner /> Sending OTP…</> : <><Smartphone size={16} /> Send verification code</>}
                   </button>
                 </form>
-              ) : (
+              )}
+
+              {otpStep === 'verify' && (
                 <form className="space-y-4" onSubmit={handleVerifyOtp} noValidate>
                   <div className="flex items-center justify-between rounded-lg bg-slate-50 p-2.5 text-xs text-slate-700">
                     <div>
@@ -296,17 +328,6 @@ export default function Login() {
                     />
                   </Field>
 
-                  <Field label="Your Name (if new citizen)" htmlFor="otp-name">
-                    <input
-                      id="otp-name"
-                      type="text"
-                      className="input"
-                      value={otpName}
-                      onChange={(e) => setOtpName(e.target.value)}
-                      placeholder="e.g. Suresh Kumar (optional)"
-                    />
-                  </Field>
-
                   {error && <InlineError message={error} />}
 
                   <button type="submit" className="btn-primary w-full" disabled={submitting}>
@@ -323,6 +344,39 @@ export default function Login() {
                       {countdown > 0 ? `Resend OTP in ${countdown}s` : 'Did not get the code? Resend OTP'}
                     </button>
                   </div>
+                </form>
+              )}
+
+              {/* Step 3: Prompt for Name if number is non-existent in database */}
+              {otpStep === 'name' && (
+                <form className="space-y-4" onSubmit={handleCompleteRegistration} noValidate>
+                  <div className="rounded-xl border border-brand-200 bg-brand-50/70 p-3.5 text-xs text-brand-900">
+                    <div className="flex items-center gap-1.5 font-semibold text-brand-800 text-sm">
+                      <Sparkles size={16} /> Welcome to the Portal!
+                    </div>
+                    <p className="mt-1 text-slate-600 leading-relaxed">
+                      Mobile number <strong>+91 {otpMobile}</strong> is verified. Since this is your first time signing in, please enter your full name to complete your registration.
+                    </p>
+                  </div>
+
+                  <Field label="Full Name" htmlFor="new-citizen-name" hint="As you would like it to appear on submitted grievances" required>
+                    <input
+                      id="new-citizen-name"
+                      type="text"
+                      className="input"
+                      value={otpName}
+                      onChange={(e) => setOtpName(e.target.value)}
+                      placeholder="e.g. Suresh Kumar"
+                      autoFocus
+                      required
+                    />
+                  </Field>
+
+                  {error && <InlineError message={error} />}
+
+                  <button type="submit" className="btn-primary w-full" disabled={submitting}>
+                    {submitting ? <><Spinner /> Completing setup…</> : <><UserPlus size={16} /> Complete Registration & Enter</>}
+                  </button>
                 </form>
               )}
             </div>

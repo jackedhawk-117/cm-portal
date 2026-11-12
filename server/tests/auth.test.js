@@ -104,6 +104,40 @@ describe('Auth API', () => {
     expect(badVerify.body.error.code).toBe('INVALID_OTP');
   });
 
+  test('prompts for citizen name if mobile number is non-existent in database, then completes registration', async () => {
+    const freshMobile = `98471${Math.floor(10000 + Math.random() * 90000)}`;
+    const sendRes = await request(app).post('/api/auth/otp/send').send({ mobile: freshMobile });
+    expect(sendRes.status).toBe(200);
+    const devOtp = sendRes.body.data.dev_otp;
+
+    // First verify without name: should detect number does not exist and ask for name
+    const verifyRes = await request(app).post('/api/auth/otp/verify').send({
+      mobile: freshMobile,
+      otp: devOtp,
+    });
+    expect(verifyRes.status).toBe(200);
+    expect(verifyRes.body.data.needs_name).toBe(true);
+    expect(verifyRes.body.data.registration_token).toBeDefined();
+
+    const regToken = verifyRes.body.data.registration_token;
+
+    // Submit full name to complete registration
+    const agent = request.agent(app);
+    const completeRes = await agent.post('/api/auth/otp/complete-registration').send({
+      registration_token: regToken,
+      name: 'Anjali Nair',
+    });
+    expect(completeRes.status).toBe(201);
+    expect(completeRes.body.data.name).toBe('Anjali Nair');
+    expect(completeRes.body.data.role).toBe('CITIZEN');
+    expect(completeRes.headers['set-cookie'].join(';')).toMatch(/HttpOnly/i);
+
+    // Verify session
+    const me = await agent.get('/api/auth/me');
+    expect(me.status).toBe(200);
+    expect(me.body.data.name).toBe('Anjali Nair');
+  });
+
   test('ignores a role supplied during registration (privilege escalation)', async () => {
     const res = await request(app).post('/api/auth/register').send({
       name: 'Sneaky User',

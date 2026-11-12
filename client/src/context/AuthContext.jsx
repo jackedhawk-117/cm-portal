@@ -50,6 +50,14 @@ export function AuthProvider({ children }) {
 
   const verifyOtp = useCallback(async (mobile, otp, name) => {
     const res = await api.post('/auth/otp/verify', { mobile, otp, name });
+    if (res.data?.id) {
+      setUser(res.data);
+    }
+    return res.data;
+  }, []);
+
+  const completeRegistration = useCallback(async (registration_token, name) => {
+    const res = await api.post('/auth/otp/complete-registration', { registration_token, name });
     setUser(res.data);
     return res.data;
   }, []);
@@ -63,8 +71,18 @@ export function AuthProvider({ children }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, loading, login, register, logout, sendOtp, verifyOtp, isAuthenticated: Boolean(user) }),
-    [user, loading, login, register, logout, sendOtp, verifyOtp],
+    () => ({
+      user,
+      loading,
+      login,
+      register,
+      logout,
+      sendOtp,
+      verifyOtp,
+      completeRegistration,
+      isAuthenticated: Boolean(user),
+    }),
+    [user, loading, login, register, logout, sendOtp, verifyOtp, completeRegistration],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

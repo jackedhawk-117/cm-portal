@@ -1,5 +1,7 @@
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const config = require('../config');
 const { query } = require('../db/pool');
 const { publicUser, signToken, setAuthCookie, clearAuthCookie, USER_SELECT } = require('../middleware/auth');
 const { conflict } = require('../utils/AppError');
@@ -227,8 +229,26 @@ async function verifyOtp(req, res, next) {
         });
       }
     } else {
-      // Auto-register new citizen
-      const citizenName = (name && name.trim()) || `Citizen (${mobile10.slice(-4)})`;
+      // If mobile number does not exist in database and no name was provided:
+      // Prompt the citizen for their name after OTP verification
+      const cleanName = name ? name.trim() : '';
+      if (cleanName.length < 2) {
+        const regToken = jwt.sign(
+          { mobile: mobile10, purpose: 'otp_registration' },
+          config.jwt.secret,
+          { expiresIn: '15m' },
+        );
+        return res.json({
+          data: {
+            needs_name: true,
+            mobile: mobile10,
+            registration_token: regToken,
+            message: 'Mobile number verified. Please enter your name to complete your registration.',
+          },
+        });
+      }
+
+      // Name provided: create the citizen account
       const randomSecret = crypto.randomBytes(16).toString('hex');
       const passwordHash = await bcrypt.hash(randomSecret, BCRYPT_ROUNDS);
 
@@ -236,7 +256,7 @@ async function verifyOtp(req, res, next) {
         `INSERT INTO users (name, email, mobile, password_hash, role)
          VALUES ($1, NULL, $2, $3, 'CITIZEN')
          RETURNING id`,
-        [citizenName, mobile10, passwordHash],
+        [cleanName, mobile10, passwordHash],
       );
 
       const fullUser = await query(`${USER_SELECT} WHERE u.id = $1`, [inserted.rows[0].id]);
@@ -251,4 +271,64 @@ async function verifyOtp(req, res, next) {
   }
 }
 
-module.exports = { register, login, logout, me, sendOtp, verifyOtp };
+/** POST /api/auth/otp/complete-registration */
+async function completeRegistration(req, res, next) {
+  try {
+    const { registration_token, name } = req.body;
+    let decoded;
+    try {
+      decoded = jwt.verify(registration_token, config.jwt.secret);
+      if (decoded.purpose !== 'otp_registration' || !decoded.mobile) {
+        throw new Error('Invalid token purpose');
+      }
+    } catch {
+      return res.status(401).json({
+        error: { code: 'INVALID_TOKEN', message: 'Registration session expired. Please verify your mobile again.' },
+      });
+    }
+
+    const mobile10 = decoded.mobile;
+    const cleanName = (name || '').trim();
+    if (cleanName.length < 2) {
+      return res.status(422).json({
+        error: { code: 'VALIDATION_ERROR', message: 'Please enter your full name (at least 2 characters).' },
+      });
+    }
+
+    // Check if user was already created
+    const existing = await query(
+      `SELECT u.*, d.code AS dept_code, d.name AS dept_name
+         FROM users u
+         LEFT JOIN departments d ON d.id = u.department_id
+        WHERE regexp_replace(u.mobile, '[^0-9]', '', 'g') = $1
+           OR regexp_replace(u.mobile, '[^0-9]', '', 'g') = $2`,
+      [mobile10, `91${mobile10}`],
+    );
+
+    let userRow;
+    if (existing.rows.length) {
+      userRow = existing.rows[0];
+    } else {
+      const randomSecret = crypto.randomBytes(16).toString('hex');
+      const passwordHash = await bcrypt.hash(randomSecret, BCRYPT_ROUNDS);
+
+      const inserted = await query(
+        `INSERT INTO users (name, email, mobile, password_hash, role)
+         VALUES ($1, NULL, $2, $3, 'CITIZEN')
+         RETURNING id`,
+        [cleanName, mobile10, passwordHash],
+      );
+
+      const fullUser = await query(`${USER_SELECT} WHERE u.id = $1`, [inserted.rows[0].id]);
+      userRow = fullUser.rows[0];
+    }
+
+    const user = publicUser(userRow);
+    setAuthCookie(res, signToken(user));
+    return res.status(201).json({ data: user });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+module.exports = { register, login, logout, me, sendOtp, verifyOtp, completeRegistration };
