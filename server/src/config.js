@@ -41,7 +41,7 @@ const config = {
   },
   gemini: {
     apiKey: env.GEMINI_API_KEY || '',
-    model: env.GEMINI_MODEL || 'gemini-2.5-flash',
+    model: env.GEMINI_MODEL || 'gemini-3.5-flash',
     timeoutMs: toInt(env.GEMINI_TIMEOUT_MS, 20000),
     // The public free-tier endpoint; the key is sent as a query parameter
     // but never leaves the server (the browser only talks to our API).

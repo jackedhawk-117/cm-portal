@@ -26,7 +26,7 @@ services:
       - key: GEMINI_API_KEY
         sync: false
       - key: GEMINI_MODEL
-        value: gemini-2.5-flash
+        value: gemini-3.5-flash
       - key: GEMINI_TIMEOUT_MS
         value: 20000
       # Same-origin deployment, so this is only needed for a custom client origin.
